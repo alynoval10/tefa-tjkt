@@ -17,19 +17,39 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\Kas\Pages\LaporanBukuKas;
 
 class KasResource extends Resource
 {
     
-protected static ?string $model = Kas::class;
+    protected static ?string $model = Kas::class;
 
-protected static ?string $recordTitleAttribute = null;
+    protected static ?string $recordTitleAttribute = null;
 
 
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    
+
+    protected static ?string $navigationLabel = 'Buku Kas';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Keuangan';
+
+    protected static ?int $navigationSort = 1;
+
+    protected static ?string $modelLabel = 'Kas';
+
+    protected static ?string $pluralModelLabel = 'Buku Kas';
+
+    public static function configure(Table $table): Table
+{
+    dd('MASUK KAS TABLE');
+
+    return $table
+        ->columns([
+            // ...
+        ]);
+}
 
     public static function form(Schema $schema): Schema
     {
@@ -54,14 +74,14 @@ protected static ?string $recordTitleAttribute = null;
     }
 
     public static function getPages(): array
-    {
-        return [
-            'index' => ListKas::route('/'),
-            'create' => CreateKas::route('/create'),
-            'view' => ViewKas::route('/{record}'),
-            'edit' => EditKas::route('/{record}/edit'),
-        ];
-    }
+{
+    return [
+        'index' => ListKas::route('/'),
+        'create' => CreateKas::route('/create'),
+        'view' => ViewKas::route('/{record}'),
+        'edit' => EditKas::route('/{record}/edit'),
+    ];
+}
 
     public static function getRecordRouteBindingEloquentQuery(): Builder
     {

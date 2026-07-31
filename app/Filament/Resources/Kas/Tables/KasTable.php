@@ -10,6 +10,11 @@ use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use App\Models\Category;
+use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Columns\Summarizers\Sum;
 
 class KasTable
 {
@@ -42,29 +47,26 @@ class KasTable
                 ->color(
                     fn (string $state) => TransactionType::from($state)->badgeColor()
                 ),
-                TextColumn::make('debet')
-                ->label('Debet')
-                ->state(function ($record) {
-                                        $type = TransactionType::from($record->category->type);
+              TextColumn::make('debet')
+    ->label('Debet')
+    ->state(function ($record) {
+        return TransactionType::from($record->category->type)->isIncome()
+            ? $record->nominal
+            : null;
+    })
+    ->money('IDR')
+    ->alignEnd()
+    ,
 
-                    return $type->isIncome()
-                        ? $record->nominal
-                        : null;
-                                    })
-                ->money('IDR')
-                ->alignEnd(),
-
-            TextColumn::make('kredit')
-                ->label('Kredit')
-                ->state(function ($record) {
-                                        $type = TransactionType::from($record->category->type);
-
-                    return $type->isExpense()
-                        ? $record->nominal
-                        : null;
-                })
-                ->money('IDR')
-                ->alignEnd(),
+TextColumn::make('kredit')
+    ->label('Kredit')
+    ->state(function ($record) {
+        return TransactionType::from($record->category->type)->isExpense()
+            ? $record->nominal
+            : null;
+    })
+    ->money('IDR')
+    ->alignEnd(),
 
                 
 
@@ -75,6 +77,40 @@ class KasTable
                     ->label('Dibuat')
                     ->since(),
             ])
+            ->filters([
+
+    Filter::make('periode')
+        ->label('Periode')
+        ->form([
+            DatePicker::make('tanggal_awal')
+                ->label('Tanggal Awal'),
+
+            DatePicker::make('tanggal_akhir')
+                ->label('Tanggal Akhir'),
+        ])
+        ->query(function (Builder $query, array $data): Builder {
+
+            return $query
+                ->when(
+                    $data['tanggal_awal'],
+                    fn (Builder $query, $date) =>
+                        $query->whereDate('tanggal', '>=', $date)
+                )
+                ->when(
+                    $data['tanggal_akhir'],
+                    fn (Builder $query, $date) =>
+                        $query->whereDate('tanggal', '<=', $date)
+                );
+        }),
+
+    SelectFilter::make('category')
+    ->label('Kategori')
+    ->relationship('category', 'name')
+
+])
+
+
+
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),

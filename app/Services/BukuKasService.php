@@ -2,13 +2,19 @@
 
 namespace App\Services;
 
+use App\Enums\TransactionType;
 use App\Models\Kas;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class BukuKasService
 {
-    public function laporan($tanggalAwal = null, $tanggalAkhir = null)
-    {
-        $query = Kas::with('category', 'user')
+    public function query(
+        ?string $tanggalAwal = null,
+        ?string $tanggalAkhir = null
+    ): Builder {
+        $query = Kas::query()
+            ->with(['category', 'user'])
             ->orderBy('tanggal')
             ->orderBy('id');
 
@@ -20,24 +26,52 @@ class BukuKasService
             $query->whereDate('tanggal', '<=', $tanggalAkhir);
         }
 
+        return $query;
+    }
+
+    public function laporan(
+        ?string $tanggalAwal = null,
+        ?string $tanggalAkhir = null
+    ): Collection {
         $saldo = 0;
 
-        return $query->get()->map(function ($item) use (&$saldo) {
+        return $this->query($tanggalAwal, $tanggalAkhir)
+            ->get()
+            ->map(function ($kas) use (&$saldo) {
 
-            $item->debet = 0;
-            $item->kredit = 0;
+                $type = TransactionType::from($kas->category->type);
 
-            if ($item->category->type === 'income') {
-                $item->debet = $item->nominal;
-                $saldo += $item->nominal;
-            } else {
-                $item->kredit = $item->nominal;
-                $saldo -= $item->nominal;
-            }
+                $kas->debet = null;
+                $kas->kredit = null;
 
-            $item->saldo = $saldo;
+                if ($type->isIncome()) {
+                    $kas->debet = $kas->nominal;
+                    $saldo += $kas->nominal;
+                } else {
+                    $kas->kredit = $kas->nominal;
+                    $saldo -= $kas->nominal;
+                }
 
-            return $item;
-        });
+                $kas->saldo = $saldo;
+
+                return $kas;
+            });
+    }
+
+    public function summary(
+        ?string $tanggalAwal = null,
+        ?string $tanggalAkhir = null
+    ): array {
+        $laporan = $this->laporan($tanggalAwal, $tanggalAkhir);
+
+        $totalDebet = $laporan->sum(fn ($item) => $item->debet ?? 0);
+        $totalKredit = $laporan->sum(fn ($item) => $item->kredit ?? 0);
+
+        return [
+            'total_debet' => $totalDebet,
+            'total_kredit' => $totalKredit,
+            'saldo_akhir' => $laporan->last()?->saldo ?? 0,
+            'jumlah_transaksi' => $laporan->count(),
+        ];
     }
 }
