@@ -61,4 +61,29 @@ class Kas extends Model
             'no_bukti' => sprintf('%s-%s-%06d', $prefix, $periode, $nomor),
         ];
     }
+
+            public function getSaldoAttribute()
+        {
+            $saldo = 0;
+
+            $transaksi = self::with('category')
+                ->whereDate('tanggal', '<=', $this->tanggal)
+                ->orderBy('tanggal')
+                ->orderBy('id')
+                ->get();
+
+            foreach ($transaksi as $item) {
+                if ($item->category->type === 'income') {
+                    $saldo += $item->nominal;
+                } else {
+                    $saldo -= $item->nominal;
+                }
+
+                if ($item->id === $this->id) {
+                    return $saldo;
+                }
+            }
+
+            return $saldo;
+        }
 }
