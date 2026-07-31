@@ -22,18 +22,16 @@ class CategoryResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
-    protected static ?string $recordTitleAttribute = 'admin';
+    protected static ?string $recordTitleAttribute = 'name';
+    
+    protected static string|\UnitEnum|null $navigationGroup = 'Master';
+
+    protected static ?string $navigationLabel = 'Kategori';
+
+    protected static ?int $navigationSort = 1;
+
 
     public static function form(Schema $schema): Schema
-
-
-    protected static ?string $navigationLabel = 'Kategori Transaksi';
-
-protected static ?string $modelLabel = 'Kategori';
-
-protected static ?string $pluralModelLabel = 'Kategori';
-
-protected static ?string $navigationGroup = 'Master Data';
     {
         return CategoryForm::configure($schema);
     }

@@ -19,4 +19,14 @@ class Category extends Model
             'is_active' => 'boolean',
         ];
     }
+
+     public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function kas()
+{
+    return $this->hasMany(Kas::class);
+}
 }
