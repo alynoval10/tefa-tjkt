@@ -47,26 +47,35 @@ class KasTable
                 ->color(
                     fn (string $state) => TransactionType::from($state)->badgeColor()
                 ),
-              TextColumn::make('debet')
-    ->label('Debet')
-    ->state(function ($record) {
-        return TransactionType::from($record->category->type)->isIncome()
-            ? $record->nominal
-            : null;
-    })
-    ->money('IDR')
-    ->alignEnd()
-    ,
+             
+                
+                TextColumn::make('debet')
+                ->label('Debet')
+                ->state(function ($record) {
+                    $type = TransactionType::from($record->category->type);
 
-TextColumn::make('kredit')
-    ->label('Kredit')
-    ->state(function ($record) {
-        return TransactionType::from($record->category->type)->isExpense()
-            ? $record->nominal
-            : null;
-    })
-    ->money('IDR')
-    ->alignEnd(),
+                    return $type->isIncome()
+                        ? $record->nominal
+                        : null;
+                })
+                ->money('IDR')
+                ->color('success')
+                ->weight('bold')
+                ->alignEnd(),
+
+                TextColumn::make('kredit')
+                    ->label('Kredit')
+                    ->state(function ($record) {
+                        $type = TransactionType::from($record->category->type);
+
+                        return $type->isExpense()
+                            ? $record->nominal
+                            : null;
+                    })
+                    ->money('IDR')
+                    ->color('danger')
+                    ->weight('bold')
+                    ->alignEnd(),
 
                 
 
@@ -105,7 +114,38 @@ TextColumn::make('kredit')
 
     SelectFilter::make('category')
     ->label('Kategori')
-    ->relationship('category', 'name')
+    ->relationship('category', 'name'),
+
+    SelectFilter::make('user')
+    ->label('Input Oleh')
+    ->relationship('user', 'name')
+    ->searchable()
+    ->preload(),
+
+    SelectFilter::make('jenis')
+    ->label('Jenis Kas')
+    ->options([
+        'income' => 'Kas Masuk',
+        'expense' => 'Kas Keluar',
+    ])
+    ->query(function (Builder $query, array $data): Builder {
+        return $query->when(
+            filled($data['value'] ?? null),
+            fn (Builder $query) => $query->whereHas(
+                'category',
+                fn (Builder $q) => $q->where('type', $data['value'])
+            )
+        );
+    }),
+
+
+    SelectFilter::make('user')
+    ->label('Input Oleh')
+    ->relationship('user', 'name')
+    ->searchable()
+    ->preload(),
+
+
 
 ])
 
