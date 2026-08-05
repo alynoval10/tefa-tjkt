@@ -4,10 +4,17 @@ namespace App\Filament\Pages;
 
 use App\Services\BukuKasService;
 use Filament\Pages\Page;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\LaporanBukuKasExport;
+use Maatwebsite\Excel\Facades\Excel;
 
-class LaporanBukuKas extends Page
+class LaporanBukuKas extends Page implements HasTable
 {
-    protected static ?string $navigationLabel = 'Laporan Buku Kas';
+use InteractsWithTable;    
+
+protected static ?string $navigationLabel = 'Laporan Buku Kas';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Keuangan';
 
@@ -55,4 +62,48 @@ class LaporanBukuKas extends Page
             )
             ->toArray();
     }
+
+         public function exportPdf()
+{
+    $service = app(\App\Services\BukuKasService::class);
+
+    $laporan = $service->laporan(
+        $this->tanggalAwal,
+        $this->tanggalAkhir
+    );
+
+    $summary = $service->summary(
+        $this->tanggalAwal,
+        $this->tanggalAkhir
+    );
+
+    $pdf = Pdf::loadView(
+        'pdf.laporan-buku-kas',
+        [
+            'laporan' => $laporan,
+            'summary' => $summary,
+            'tanggalAwal' => $this->tanggalAwal,
+            'tanggalAkhir' => $this->tanggalAkhir,
+        ]
+    );
+
+    return response()->streamDownload(
+        fn () => print($pdf->output()),
+        'laporan-buku-kas.pdf'
+    );
+}
+
+        public function exportExcel()
+{
+    return Excel::download(
+
+        new LaporanBukuKasExport(
+            $this->tanggalAwal,
+            $this->tanggalAkhir
+        ),
+
+        'laporan-buku-kas.xlsx'
+
+    );
+}
 }
