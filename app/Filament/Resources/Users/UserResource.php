@@ -15,9 +15,30 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use App\Filament\Concerns\HasRolePermission;
 
 class UserResource extends Resource
 {
+      use HasRolePermission;
+
+    protected static array $viewRoles = [
+    'admin',
+];
+
+protected static array $createRoles = [
+    'admin',
+];
+
+protected static array $editRoles = [
+    'admin',
+];
+
+protected static array $deleteRoles = [
+    'admin',
+];
+
+
+
     protected static ?string $model = User::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -55,4 +76,5 @@ class UserResource extends Resource
             'edit' => EditUser::route('/{record}/edit'),
         ];
     }
+
 }

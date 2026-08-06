@@ -19,9 +19,32 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\Kas\Pages\LaporanBukuKas;
 
+
+use App\Filament\Concerns\HasRolePermission;
+
 class KasResource extends Resource
 {
-    
+      use HasRolePermission;
+
+    protected static array $viewRoles = [
+    'admin',
+    'bendahara',
+    ];
+
+    protected static array $createRoles = [
+        'admin',
+        'bendahara',
+    ];
+
+    protected static array $editRoles = [
+        'admin',
+        'bendahara',
+    ];
+
+    protected static array $deleteRoles = [
+        'admin',
+];
+
     protected static ?string $model = Kas::class;
 
     protected static ?string $recordTitleAttribute = null;
@@ -41,15 +64,7 @@ class KasResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Buku Kas';
 
-    public static function configure(Table $table): Table
-{
-    dd('MASUK KAS TABLE');
-
-    return $table
-        ->columns([
-            // ...
-        ]);
-}
+    
 
     public static function form(Schema $schema): Schema
     {
@@ -90,4 +105,9 @@ class KasResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+   
+  
+
+
 }

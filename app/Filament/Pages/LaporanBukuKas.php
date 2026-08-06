@@ -9,6 +9,7 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\LaporanBukuKasExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Database\Eloquent\Model;
 
 class LaporanBukuKas extends Page implements HasTable
 {
@@ -106,4 +107,48 @@ protected static ?string $navigationLabel = 'Laporan Buku Kas';
 
     );
 }
+
+public static function canAccess(): bool
+{
+    return auth()->check()
+        && auth()->user()->hasAnyRole([
+            'admin',
+            'bendahara',
+            'guru',
+        ]);
+}
+
+public static function canViewAny(): bool
+{
+    return auth()->check()
+        && auth()->user()->hasAnyRole([
+            'admin',
+            'bendahara',
+        ]);
+}
+
+public static function canCreate(): bool
+{
+    return auth()->check()
+        && auth()->user()->hasAnyRole([
+            'admin',
+            'bendahara',
+        ]);
+}
+
+public static function canEdit(Model $record): bool
+{
+    return auth()->check()
+        && auth()->user()->hasAnyRole([
+            'admin',
+            'bendahara',
+        ]);
+}
+
+public static function canDelete(Model $record): bool
+{
+    return auth()->check()
+        && auth()->user()->hasRole('admin');
+}
+
 }

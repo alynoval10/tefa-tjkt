@@ -15,9 +15,36 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-
+use App\Filament\Concerns\HasRolePermission;
 class CategoryResource extends Resource
 {
+      use HasRolePermission;
+
+    protected static array $viewRoles = [
+        'admin',
+        'bendahara',
+    ];
+
+    protected static array $createRoles = [
+        'admin',
+        'bendahara',
+    ];
+
+    protected static array $editRoles = [
+        'admin',
+        'bendahara',
+    ];
+
+    protected static array $deleteRoles = [
+        'admin',
+    ];
+
+
+
+
+
+
+
     protected static ?string $model = Category::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -62,4 +89,5 @@ class CategoryResource extends Resource
             'edit' => EditCategory::route('/{record}/edit'),
         ];
     }
-}
+
+}        
