@@ -157,7 +157,9 @@ class KasTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                    ->visible(fn () => auth()->user()->hasRole('admin'))
+                    ->authorize(fn () => auth()->user()->hasRole('admin')),
                 ]),
             ]);
     }
