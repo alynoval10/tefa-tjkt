@@ -4,11 +4,13 @@ namespace App\Filament\Widgets;
 
 use App\Models\Kas;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Facades\DB;
 
 class KasChart extends ChartWidget
 {
+    
+    protected int|string|array $columnSpan = 1;
     protected ?string $heading = 'Grafik Kas Bulanan';
+    
 
     protected function getData(): array
     {
@@ -55,30 +57,8 @@ class KasChart extends ChartWidget
         ];
     }
 
-    protected function getOptions(): array
-{
-    return [
-        'plugins' => [
-            'legend' => [
-                'display' => true,
-            ],
-        ],
-        'scales' => [
-            'y' => [
-                'ticks' => [
-                    'callback' => \Illuminate\Support\Js::from(
-                        'function(value){ return (value / 1000000) + " Jt"; }'
-                    ),
-                ],
-            ],
-        ],
-    ];
-}
-
     protected function getType(): string
     {
         return 'line';
     }
-
-
 }

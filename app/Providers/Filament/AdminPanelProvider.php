@@ -44,14 +44,11 @@ class AdminPanelProvider extends PanelProvider
                 Dashboard::class,
                  Settings::class,
             ])
-            ->discoverWidgets(
-                in: app_path('Filament/Widgets'),
-                for: 'App\\Filament\\Widgets'
-            )
             ->widgets([
                  AccountWidget::class,
                 \App\Filament\Widgets\KasStats::class,
                 \App\Filament\Widgets\KasChart::class,
+                 \App\Filament\Widgets\PengeluaranChart::class,
                 \App\Filament\Widgets\RecentTransactions::class,
             ])
             ->middleware([

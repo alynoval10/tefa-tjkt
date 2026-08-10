@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class RecentTransactions extends BaseWidget
 {
-    protected int|string|array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';   
+   
 
     protected static ?string $heading = 'Transaksi Terbaru';
 
