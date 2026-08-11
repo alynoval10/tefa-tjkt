@@ -7,12 +7,27 @@ use Filament\Widgets\ChartWidget;
 
 class PengeluaranChart extends ChartWidget
 {
-    protected int|string|array $columnSpan = 1;
     protected ?string $heading = 'Pengeluaran Berdasarkan Kategori';
+
+    protected int|string|array $columnSpan = 1;
+
+    public ?string $filter = null;
+
+    protected function getFilters(): ?array
+    {
+        return collect(range(date('Y'), date('Y') - 4))
+            ->mapWithKeys(fn ($year) => [
+                (string) $year => (string) $year,
+            ])
+            ->toArray();
+    }
 
     protected function getData(): array
     {
+        $year = (int) ($this->filter ?? date('Y'));
+
         $data = Kas::query()
+            ->whereYear('tanggal', $year)
             ->whereHas('category', function ($query) {
                 $query->where('type', 'expense');
             })
@@ -21,7 +36,7 @@ class PengeluaranChart extends ChartWidget
             ->groupBy('category_id')
             ->get();
 
-       return [
+        return [
             'datasets' => [
                 [
                     'label' => 'Pengeluaran',

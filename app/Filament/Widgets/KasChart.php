@@ -7,13 +7,25 @@ use Filament\Widgets\ChartWidget;
 
 class KasChart extends ChartWidget
 {
-    
-    protected int|string|array $columnSpan = 1;
     protected ?string $heading = 'Grafik Kas Bulanan';
-    
+
+    protected int|string|array $columnSpan = 1;
+
+    public ?string $filter = null;
+
+    protected function getFilters(): ?array
+    {
+        return collect(range(date('Y'), date('Y') - 4))
+            ->mapWithKeys(fn ($year) => [
+                (string) $year => (string) $year,
+            ])
+            ->toArray();
+    }
 
     protected function getData(): array
     {
+        $year = (int) ($this->filter ?? date('Y'));
+
         $income = [];
         $expense = [];
         $labels = [];
@@ -23,11 +35,13 @@ class KasChart extends ChartWidget
             $labels[] = date('M', mktime(0, 0, 0, $month, 1));
 
             $income[] = Kas::query()
+                ->whereYear('tanggal', $year)
                 ->whereMonth('tanggal', $month)
                 ->whereHas('category', fn ($q) => $q->where('type', 'income'))
                 ->sum('nominal');
 
             $expense[] = Kas::query()
+                ->whereYear('tanggal', $year)
                 ->whereMonth('tanggal', $month)
                 ->whereHas('category', fn ($q) => $q->where('type', 'expense'))
                 ->sum('nominal');

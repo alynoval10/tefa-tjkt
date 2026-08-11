@@ -5,10 +5,12 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Kas extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $table = 'kas';
 
@@ -60,6 +62,30 @@ class Kas extends Model
             'nomor_urut' => $nomor,
             'no_bukti' => sprintf('%s-%s-%06d', $prefix, $periode, $nomor),
         ];
+    }
+
+            public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('kas')
+            ->logOnly([
+                'no_bukti',
+                'nomor_urut',
+                'tanggal',
+                'category_id',
+                'nominal',
+                'keterangan',
+                'user_id',
+            ])
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(
+                fn (string $eventName) => match ($eventName) {
+                    'created' => 'Membuat transaksi kas',
+                    'updated' => 'Mengubah transaksi kas',
+                    'deleted' => 'Menghapus transaksi kas',
+                    default => $eventName,
+                }
+            );
     }
 
             
