@@ -131,6 +131,20 @@ class ActivityLogs extends Page implements HasTable
             'updated' => 'Diubah',
             'deleted' => 'Dihapus',
         ]),
+SelectFilter::make('subject_type')
+    ->label('Data')
+    ->options(
+        Activity::query()
+            ->whereNotNull('subject_type')
+            ->distinct()
+            ->pluck('subject_type')
+            ->mapWithKeys(function ($type) {
+                return [
+                    $type => class_basename($type),
+                ];
+            })
+            ->toArray()
+    ),
 
     Filter::make('created_at')
         ->label('Tanggal')
