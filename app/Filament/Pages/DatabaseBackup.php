@@ -6,6 +6,7 @@ use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Filament\Notifications\Notification;
 
 class DatabaseBackup extends Page
 {
@@ -54,7 +55,11 @@ class DatabaseBackup extends Page
 
         exec($command, $output, $result);
 
-        if ($result !== 0 || ! File::exists($filePath) || File::size($filePath) === 0) {
+        if (
+            $result !== 0 ||
+            ! File::exists($filePath) ||
+            File::size($filePath) === 0
+        ) {
             abort(500, 'Backup database gagal dibuat.');
         }
 
@@ -63,6 +68,92 @@ class DatabaseBackup extends Page
             $filename
         );
     }
+
+    public function getBackups(): array
+    {
+        $path = storage_path('app/backups');
+
+        if (! File::exists($path)) {
+            return [];
+        }
+
+        return collect(File::files($path))
+            ->filter(
+                fn ($file) => $file->getExtension() === 'sql'
+            )
+            ->sortByDesc(
+                fn ($file) => $file->getMTime()
+            )
+            ->map(
+                fn ($file) => [
+                    'name' => $file->getFilename(),
+                    'size' => $this->formatBytes($file->getSize()),
+                    'created_at' => date(
+                        'd M Y H:i:s',
+                        $file->getMTime()
+                    ),
+                ]
+            )
+            ->values()
+            ->toArray();
+    }
+
+    protected function formatBytes(int $bytes): string
+    {
+        if ($bytes >= 1024 * 1024) {
+            return number_format(
+                $bytes / 1024 / 1024,
+                2
+            ) . ' MB';
+        }
+
+        if ($bytes >= 1024) {
+            return number_format(
+                $bytes / 1024,
+                2
+            ) . ' KB';
+        }
+
+        return $bytes . ' B';
+    }
+
+    public function deleteBackup(string $filename): void
+{
+    if (! auth()->user()?->hasRole('admin')) {
+        abort(403);
+    }
+
+    $filename = basename($filename);
+
+    if (! str_ends_with(strtolower($filename), '.sql')) {
+        abort(400, 'File backup tidak valid.');
+    }
+
+    $path = storage_path('app/backups/' . $filename);
+
+    if (! File::exists($path)) {
+        Notification::make()
+            ->title('Backup tidak ditemukan')
+            ->danger()
+            ->send();
+
+        return;
+    }
+
+    File::delete($path);
+
+    Notification::make()
+        ->title('Backup berhasil dihapus')
+        ->success()
+        ->send();
+}
+
+
+
+
+
+
+
 
     protected function getHeaderActions(): array
     {
@@ -74,4 +165,6 @@ class DatabaseBackup extends Page
                 ->action('backup'),
         ];
     }
+
+    
 }
