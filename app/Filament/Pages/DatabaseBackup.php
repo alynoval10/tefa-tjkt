@@ -117,7 +117,7 @@ class DatabaseBackup extends Page
         return $bytes . ' B';
     }
 
-    public function deleteBackup(string $filename): void
+  public function deleteBackup(string $filename): void
 {
     if (! auth()->user()?->hasRole('admin')) {
         abort(403);
@@ -129,7 +129,9 @@ class DatabaseBackup extends Page
         abort(400, 'File backup tidak valid.');
     }
 
-    $path = storage_path('app/backups/' . $filename);
+    $backupPath = storage_path('app/backups');
+
+    $path = $backupPath . DIRECTORY_SEPARATOR . $filename;
 
     if (! File::exists($path)) {
         Notification::make()
@@ -140,6 +142,31 @@ class DatabaseBackup extends Page
         return;
     }
 
+    /*
+     * Ambil semua backup SQL
+     */
+    $backupFiles = array_filter(
+        File::files($backupPath),
+        fn ($file) =>
+            strtolower($file->getExtension()) === 'sql'
+    );
+
+    /*
+     * Jangan pernah menghapus backup terakhir
+     */
+    if (count($backupFiles) <= 1) {
+        Notification::make()
+            ->title('Backup terakhir tidak dapat dihapus')
+            ->body('Minimal satu backup harus tetap tersedia.')
+            ->warning()
+            ->send();
+
+        return;
+    }
+
+    /*
+     * Hapus backup
+     */
     File::delete($path);
 
     Notification::make()

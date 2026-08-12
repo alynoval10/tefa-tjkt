@@ -15,7 +15,6 @@ class DatabaseBackup extends Command
     {
         $backupPath = storage_path('app/backups');
 
-        // Pastikan folder backup tersedia
         if (! File::exists($backupPath)) {
             File::makeDirectory($backupPath, 0755, true);
         }
@@ -44,7 +43,6 @@ class DatabaseBackup extends Command
 
         exec($command, $output, $result);
 
-        // Cek hasil backup
         if (
             $result !== 0 ||
             ! File::exists($filePath) ||
@@ -59,13 +57,11 @@ class DatabaseBackup extends Command
             return self::FAILURE;
         }
 
-        $size = File::size($filePath);
-
         $this->info('Backup berhasil dibuat.');
         $this->line('File: ' . $filename);
-        $this->line('Ukuran: ' . $this->formatBytes($size));
+        $this->line('Ukuran: ' . $this->formatBytes(File::size($filePath)));
 
-        // Hapus backup lama, sisakan 7 backup terbaru
+        // Simpan maksimal 7 backup terbaru
         $this->cleanupOldBackups($backupPath);
 
         return self::SUCCESS;
@@ -75,16 +71,15 @@ class DatabaseBackup extends Command
     {
         $files = collect(File::files($backupPath))
             ->filter(
-                fn ($file) => $file->getExtension() === 'sql'
+                fn ($file) =>
+                    strtolower($file->getExtension()) === 'sql'
             )
             ->sortByDesc(
                 fn ($file) => $file->getMTime()
             )
             ->values();
 
-        $oldFiles = $files->slice(7);
-
-        foreach ($oldFiles as $file) {
+        foreach ($files->slice(7) as $file) {
             File::delete($file->getPathname());
 
             $this->line(
