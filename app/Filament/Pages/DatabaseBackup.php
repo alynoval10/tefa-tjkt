@@ -78,9 +78,14 @@ class DatabaseBackup extends Page
         }
 
         return collect(File::files($path))
-            ->filter(
-                fn ($file) => $file->getExtension() === 'sql'
+    ->filter(
+        fn ($file) =>
+            strtolower($file->getExtension()) === 'sql'
+            && str_starts_with(
+                $file->getFilename(),
+                'database_'
             )
+    )
             ->sortByDesc(
                 fn ($file) => $file->getMTime()
             )
@@ -175,7 +180,131 @@ class DatabaseBackup extends Page
         ->send();
 }
 
+public function restoreBackup(string $filename): void
+{
+    if (! auth()->user()?->hasRole('admin')) {
+        abort(403);
+    }
 
+    $filename = basename($filename);
+
+    if (! str_ends_with(strtolower($filename), '.sql')) {
+        abort(400, 'File backup tidak valid.');
+    }
+
+    $backupPath = storage_path('app/backups');
+    $restoreFile = $backupPath . DIRECTORY_SEPARATOR . $filename;
+
+    if (! File::exists($restoreFile)) {
+        Notification::make()
+            ->title('Backup tidak ditemukan')
+            ->danger()
+            ->send();
+
+        return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BACKUP DATABASE SAAT INI
+    |--------------------------------------------------------------------------
+    */
+
+    $safetyFilename =
+        'before_restore_' .
+        now()->format('Y-m-d_H-i-s') .
+        '.sql';
+
+    $safetyPath =
+        $backupPath .
+        DIRECTORY_SEPARATOR .
+        $safetyFilename;
+
+    $host = config('database.connections.mysql.host');
+    $port = config('database.connections.mysql.port');
+    $database = config('database.connections.mysql.database');
+    $username = config('database.connections.mysql.username');
+    $password = config('database.connections.mysql.password');
+
+    $backupCommand = sprintf(
+        'mysqldump --host=%s --port=%s --user=%s --password=%s %s > %s',
+        escapeshellarg($host),
+        escapeshellarg($port),
+        escapeshellarg($username),
+        escapeshellarg($password),
+        escapeshellarg($database),
+        escapeshellarg($safetyPath)
+    );
+
+    exec($backupCommand, $output, $backupResult);
+
+    if (
+        $backupResult !== 0 ||
+        ! File::exists($safetyPath) ||
+        File::size($safetyPath) === 0
+    ) {
+        Notification::make()
+            ->title('Restore dibatalkan')
+            ->body('Backup pengaman sebelum restore gagal dibuat.')
+            ->danger()
+            ->send();
+
+        return;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | RESTORE DATABASE
+    |--------------------------------------------------------------------------
+    */
+
+    $restoreCommand = sprintf(
+        'mysql --host=%s --port=%s --user=%s --password=%s %s < %s',
+        escapeshellarg($host),
+        escapeshellarg($port),
+        escapeshellarg($username),
+        escapeshellarg($password),
+        escapeshellarg($database),
+        escapeshellarg($restoreFile)
+    );
+
+    exec($restoreCommand, $restoreOutput, $restoreResult);
+
+    if ($restoreResult !== 0) {
+        Notification::make()
+            ->title('Restore gagal')
+            ->body(
+                'Database dikembalikan menggunakan backup pengaman.'
+            )
+            ->danger()
+            ->send();
+
+        /*
+         * Kembalikan database menggunakan backup pengaman
+         */
+        $rollbackCommand = sprintf(
+            'mysql --host=%s --port=%s --user=%s --password=%s %s < %s',
+            escapeshellarg($host),
+            escapeshellarg($port),
+            escapeshellarg($username),
+            escapeshellarg($password),
+            escapeshellarg($database),
+            escapeshellarg($safetyPath)
+        );
+
+        exec($rollbackCommand);
+
+        return;
+    }
+
+    Notification::make()
+        ->title('Restore berhasil')
+        ->body(
+            'Database berhasil dikembalikan dari ' . $filename
+        )
+        ->success()
+        ->send();
+}
 
 
 

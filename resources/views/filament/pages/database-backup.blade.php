@@ -211,6 +211,33 @@
     </a>
 
 
+<button
+    type="button"
+    wire:click="restoreBackup('{{ $backup['name'] }}')"
+    onclick="return confirm('PERINGATAN! Restore akan mengganti isi database saat ini dengan backup yang dipilih. Lanjutkan?')"
+    style="
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 13px;
+        border: 1px solid rgba(245,158,11,.30);
+        border-radius: 7px;
+        background: rgba(245,158,11,.08);
+        color: #fbbf24;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    "
+>
+    ↻
+    Restore
+</button>
+
+
+
+
+
+
     <button
         type="button"
         wire:click="deleteBackup('{{ $backup['name'] }}')"
