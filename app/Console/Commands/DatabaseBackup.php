@@ -68,25 +68,54 @@ class DatabaseBackup extends Command
     }
 
     protected function cleanupOldBackups(string $backupPath): void
-    {
-        $files = collect(File::files($backupPath))
-            ->filter(
-                fn ($file) =>
-                    strtolower($file->getExtension()) === 'sql'
-            )
-            ->sortByDesc(
-                fn ($file) => $file->getMTime()
-            )
-            ->values();
+{
+    // Backup utama: maksimal 7 file
+    $databaseBackups = collect(File::files($backupPath))
+        ->filter(
+            fn ($file) =>
+                strtolower($file->getExtension()) === 'sql'
+                && str_starts_with(
+                    $file->getFilename(),
+                    'database_'
+                )
+        )
+        ->sortByDesc(
+            fn ($file) => $file->getMTime()
+        )
+        ->values();
 
-        foreach ($files->slice(7) as $file) {
-            File::delete($file->getPathname());
+    foreach ($databaseBackups->slice(7) as $file) {
+        File::delete($file->getPathname());
 
-            $this->line(
-                'Backup lama dihapus: ' . $file->getFilename()
-            );
-        }
+        $this->line(
+            'Backup lama dihapus: ' . $file->getFilename()
+        );
     }
+
+
+    // Backup pengaman sebelum restore: maksimal 3 file
+    $restoreBackups = collect(File::files($backupPath))
+        ->filter(
+            fn ($file) =>
+                strtolower($file->getExtension()) === 'sql'
+                && str_starts_with(
+                    $file->getFilename(),
+                    'before_restore_'
+                )
+        )
+        ->sortByDesc(
+            fn ($file) => $file->getMTime()
+        )
+        ->values();
+
+    foreach ($restoreBackups->slice(3) as $file) {
+        File::delete($file->getPathname());
+
+        $this->line(
+            'Backup pengaman lama dihapus: ' . $file->getFilename()
+        );
+    }
+}
 
     protected function formatBytes(int $bytes): string
     {

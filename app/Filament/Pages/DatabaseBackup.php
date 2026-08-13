@@ -69,39 +69,39 @@ class DatabaseBackup extends Page
         );
     }
 
-    public function getBackups(): array
-    {
-        $path = storage_path('app/backups');
+   public function getBackups(): array
+{
+    $path = storage_path('app/backups');
 
-        if (! File::exists($path)) {
-            return [];
-        }
-
-        return collect(File::files($path))
-    ->filter(
-        fn ($file) =>
-            strtolower($file->getExtension()) === 'sql'
-            && str_starts_with(
-                $file->getFilename(),
-                'database_'
-            )
-    )
-            ->sortByDesc(
-                fn ($file) => $file->getMTime()
-            )
-            ->map(
-                fn ($file) => [
-                    'name' => $file->getFilename(),
-                    'size' => $this->formatBytes($file->getSize()),
-                    'created_at' => date(
-                        'd M Y H:i:s',
-                        $file->getMTime()
-                    ),
-                ]
-            )
-            ->values()
-            ->toArray();
+    if (! File::exists($path)) {
+        return [];
     }
+
+    return collect(File::files($path))
+        ->filter(
+            fn ($file) =>
+                strtolower($file->getExtension()) === 'sql'
+                && str_starts_with(
+                    $file->getFilename(),
+                    'database_'
+                )
+        )
+        ->sortByDesc(
+            fn ($file) => $file->getMTime()
+        )
+        ->map(
+            fn ($file) => [
+                'name' => $file->getFilename(),
+                'size' => $this->formatBytes($file->getSize()),
+                'created_at' => date(
+                    'd M Y H:i:s',
+                    $file->getMTime()
+                ),
+            ]
+        )
+        ->values()
+        ->toArray();
+}
 
     protected function formatBytes(int $bytes): string
     {
