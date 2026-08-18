@@ -1,14 +1,25 @@
 <?php
 
 use App\Filament\Pages\FinancialReport;
+use App\Models\Setting;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
+
+/*
+|--------------------------------------------------------------------------
+| Halaman Utama
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/', function () {
+
     return view('welcome');
+
 });
+
 
 
 /*
@@ -27,11 +38,14 @@ Route::get(
             403
         );
 
+
         $filename = basename($filename);
+
 
         $path = storage_path(
             'app/backups/' . $filename
         );
+
 
         abort_unless(
             File::exists($path) &&
@@ -39,10 +53,14 @@ Route::get(
             404
         );
 
+
         return response()->download($path);
 
     }
-)->name('database-backup.download')->middleware('auth');
+)
+    ->name('database-backup.download')
+    ->middleware('auth');
+
 
 
 /*
@@ -51,72 +69,236 @@ Route::get(
 |--------------------------------------------------------------------------
 */
 
-Route::get('/admin/laporan-keuangan/pdf', function () {
-
-    abort_unless(
-        auth()->check() &&
-        auth()->user()->hasRole('admin'),
-        403
-    );
-
-    $tanggalMulai = request('tanggal_mulai')
-        ?: now()->startOfMonth()->format('Y-m-d');
-
-    $tanggalSelesai = request('tanggal_selesai')
-        ?: now()->endOfMonth()->format('Y-m-d');
+Route::get(
+    '/admin/laporan-keuangan/pdf',
+    function () {
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Ambil data dari FinancialReport
-    |--------------------------------------------------------------------------
-    */
+        /*
+        |--------------------------------------------------------------------------
+        | Cek Login & Admin
+        |--------------------------------------------------------------------------
+        */
 
-    $page = app(FinancialReport::class);
-
-    $page->tanggalMulai = $tanggalMulai;
-    $page->tanggalSelesai = $tanggalSelesai;
-
-
-    $transaksi = $page->getTransaksi();
-
-    $totalMasuk = $page->getTotalMasuk();
-
-    $totalKeluar = $page->getTotalKeluar();
-
-    $saldo = $page->getSaldo();
-
-    $rekapKategori = $page->getRekapKategori();
+        abort_unless(
+            auth()->check() &&
+            auth()->user()->hasRole('admin'),
+            403
+        );
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Generate PDF
-    |--------------------------------------------------------------------------
-    */
+        /*
+        |--------------------------------------------------------------------------
+        | Periode
+        |--------------------------------------------------------------------------
+        */
 
-    $pdf = Pdf::loadView(
-        'filament.pages.financial-report-pdf',
-        compact(
-            'tanggalMulai',
-            'tanggalSelesai',
-            'transaksi',
-            'totalMasuk',
-            'totalKeluar',
-            'saldo',
-            'rekapKategori'
-        )
-    );
-
-    $pdf->setPaper('A4', 'portrait');
+        $tanggalMulai = request('tanggal_mulai')
+            ?: now()
+                ->startOfMonth()
+                ->format('Y-m-d');
 
 
-    return $pdf->stream(
-        'laporan-keuangan-' .
-        $tanggalMulai .
-        '-sampai-' .
-        $tanggalSelesai .
-        '.pdf'
-    );
+        $tanggalSelesai = request('tanggal_selesai')
+            ?: now()
+                ->endOfMonth()
+                ->format('Y-m-d');
 
-})->name('financial-report.pdf')->middleware('auth');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Ambil Setting
+        |--------------------------------------------------------------------------
+        */
+
+        $setting = Setting::with([
+            'headProgram',
+            'treasurer',
+        ])->first();
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Ambil Data Laporan
+        |--------------------------------------------------------------------------
+        */
+
+        $page = app(FinancialReport::class);
+
+
+        $page->tanggalMulai =
+            $tanggalMulai;
+
+
+        $page->tanggalSelesai =
+            $tanggalSelesai;
+
+
+
+        $transaksi =
+            $page->getTransaksi();
+
+
+        $totalMasuk =
+            $page->getTotalMasuk();
+
+
+        $totalKeluar =
+            $page->getTotalKeluar();
+
+
+        $saldo =
+            $page->getSaldo();
+
+
+        $rekapKategori =
+            $page->getRekapKategori();
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Logo Sekolah
+        |--------------------------------------------------------------------------
+        */
+
+        $schoolLogo = null;
+
+
+        if (
+            $setting &&
+            $setting->school_logo
+        ) {
+
+            $path = storage_path(
+                'app/public/' .
+                $setting->school_logo
+            );
+
+
+            if (File::exists($path)) {
+
+                $mime = File::mimeType($path);
+
+                $schoolLogo =
+                    'data:' .
+                    $mime .
+                    ';base64,' .
+                    base64_encode(
+                        File::get($path)
+                    );
+
+            }
+
+        }
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Logo TEFA
+        |--------------------------------------------------------------------------
+        */
+
+        $tefaLogo = null;
+
+
+        if (
+            $setting &&
+            $setting->tefa_logo
+        ) {
+
+            $path = storage_path(
+                'app/public/' .
+                $setting->tefa_logo
+            );
+
+
+            if (File::exists($path)) {
+
+                $mime = File::mimeType($path);
+
+                $tefaLogo =
+                    'data:' .
+                    $mime .
+                    ';base64,' .
+                    base64_encode(
+                        File::get($path)
+                    );
+
+            }
+
+        }
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Generate PDF
+        |--------------------------------------------------------------------------
+        */
+
+        $pdf = Pdf::loadView(
+
+            'filament.pages.financial-report-pdf',
+
+            compact(
+                'setting',
+
+                'schoolLogo',
+
+                'tefaLogo',
+
+                'tanggalMulai',
+
+                'tanggalSelesai',
+
+                'transaksi',
+
+                'totalMasuk',
+
+                'totalKeluar',
+
+                'saldo',
+
+                'rekapKategori'
+            )
+
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Ukuran Kertas
+        |--------------------------------------------------------------------------
+        */
+
+        $pdf->setPaper(
+            'A4',
+            'portrait'
+        );
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tampilkan PDF
+        |--------------------------------------------------------------------------
+        */
+
+        return $pdf->stream(
+
+            'laporan-keuangan-' .
+            $tanggalMulai .
+            '-sampai-' .
+            $tanggalSelesai .
+            '.pdf'
+
+        );
+
+    }
+)
+    ->name('financial-report.pdf')
+    ->middleware('auth');

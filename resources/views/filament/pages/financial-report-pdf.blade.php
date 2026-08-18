@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
+
     <meta charset="UTF-8">
 
     <title>Laporan Keuangan</title>
 
     <style>
+
         @page {
-            margin: 35px 40px;
+            margin: 30px 40px;
         }
 
         body {
@@ -16,9 +19,82 @@
             color: #222;
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | KOP
+        |--------------------------------------------------------------------------
+        */
+
+        .kop {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+        }
+
+        .kop td {
+            vertical-align: middle;
+        }
+
+        .logo-left {
+            width: 80px;
+            text-align: left;
+        }
+
+        .logo-right {
+            width: 80px;
+            text-align: right;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+
+        .kop-tengah {
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .nama-sekolah {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .nama-tefa {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .jurusan {
+            font-size: 10px;
+        }
+
+        .alamat {
+            font-size: 8px;
+            color: #555;
+            margin-top: 4px;
+        }
+
+
+        .garis-kop {
+            border-bottom: 2px solid #222;
+            margin-bottom: 18px;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | JUDUL
+        |--------------------------------------------------------------------------
+        */
+
         .header {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .header h1 {
@@ -27,17 +103,18 @@
             font-weight: bold;
         }
 
-        .header h2 {
-            margin: 5px 0 0;
-            font-size: 13px;
-            font-weight: normal;
-        }
-
         .periode {
-            margin-top: 8px;
+            margin-top: 7px;
             font-size: 10px;
             color: #555;
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | RINGKASAN
+        |--------------------------------------------------------------------------
+        */
 
         .summary {
             width: 100%;
@@ -75,6 +152,13 @@
             color: #1d4ed8;
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | SECTION
+        |--------------------------------------------------------------------------
+        */
+
         .section-title {
             font-size: 12px;
             font-weight: bold;
@@ -82,6 +166,13 @@
             padding-bottom: 5px;
             border-bottom: 2px solid #333;
         }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | TABLE
+        |--------------------------------------------------------------------------
+        */
 
         table.data {
             width: 100%;
@@ -112,40 +203,186 @@
             background: #f7f7f7;
         }
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | TANDA TANGAN
+        |--------------------------------------------------------------------------
+        */
+
+        .signature {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 40px;
+        }
+
+        .signature td {
+            width: 50%;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .signature-space {
+            height: 55px;
+        }
+
+        .signature-name {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | FOOTER
+        |--------------------------------------------------------------------------
+        */
+
         .footer {
-            margin-top: 35px;
+            margin-top: 30px;
             text-align: right;
-            font-size: 9px;
+            font-size: 8px;
             color: #666;
         }
+
     </style>
+
 </head>
+
 
 <body>
 
-    {{-- HEADER --}}
+
+    {{-- ==========================================================
+         KOP LAPORAN
+    =========================================================== --}}
+
+    <table class="kop">
+
+        <tr>
+
+
+            {{-- LOGO SEKOLAH --}}
+
+            <td class="logo-left">
+
+                @if(!empty($schoolLogo))
+
+                    <img
+                        src="{{ $schoolLogo }}"
+                        class="logo"
+                    >
+
+                @endif
+
+            </td>
+
+
+            {{-- IDENTITAS --}}
+
+            <td class="kop-tengah">
+
+                <div class="nama-sekolah">
+
+                    {{ $setting->school_name ?? 'SMKN 1 Krangkeng' }}
+
+                </div>
+
+
+                <div class="nama-tefa">
+
+                    {{ $setting->tefa_name ?? 'Teaching Factory TJKT' }}
+
+                </div>
+
+
+                <div class="jurusan">
+
+                    {{ $setting->department_name
+                        ?? 'Teknik Jaringan Komputer dan Telekomunikasi'
+                    }}
+
+                </div>
+
+
+                @if(!empty($setting->address))
+
+                    <div class="alamat">
+
+                        {{ $setting->address }}
+
+                        @if(!empty($setting->phone))
+                            | Telp. {{ $setting->phone }}
+                        @endif
+
+                        @if(!empty($setting->email))
+                            | {{ $setting->email }}
+                        @endif
+
+                    </div>
+
+                @endif
+
+            </td>
+
+
+            {{-- LOGO TEFA --}}
+
+            <td class="logo-right">
+
+                @if(!empty($tefaLogo))
+
+                    <img
+                        src="{{ $tefaLogo }}"
+                        class="logo"
+                    >
+
+                @endif
+
+            </td>
+
+        </tr>
+
+    </table>
+
+
+    <div class="garis-kop"></div>
+
+
+    {{-- ==========================================================
+         JUDUL
+    =========================================================== --}}
 
     <div class="header">
 
-        <h1>LAPORAN KEUANGAN</h1>
+        <h1>
+            LAPORAN KEUANGAN
+        </h1>
 
-        <h2>TEFA TJKT</h2>
 
         <div class="periode">
+
             Periode:
+
             {{ \Carbon\Carbon::parse($tanggalMulai)->format('d/m/Y') }}
+
             -
+
             {{ \Carbon\Carbon::parse($tanggalSelesai)->format('d/m/Y') }}
+
         </div>
 
     </div>
 
 
-    {{-- RINGKASAN --}}
+    {{-- ==========================================================
+         RINGKASAN
+    =========================================================== --}}
 
     <table class="summary">
 
         <tr>
+
 
             <td>
 
@@ -154,7 +391,15 @@
                 </div>
 
                 <div class="summary-value income">
-                    Rp {{ number_format($totalMasuk, 0, ',', '.') }}
+
+                    Rp
+                    {{ number_format(
+                        $totalMasuk,
+                        0,
+                        ',',
+                        '.'
+                    ) }}
+
                 </div>
 
             </td>
@@ -167,7 +412,15 @@
                 </div>
 
                 <div class="summary-value expense">
-                    Rp {{ number_format($totalKeluar, 0, ',', '.') }}
+
+                    Rp
+                    {{ number_format(
+                        $totalKeluar,
+                        0,
+                        ',',
+                        '.'
+                    ) }}
+
                 </div>
 
             </td>
@@ -180,7 +433,15 @@
                 </div>
 
                 <div class="summary-value balance">
-                    Rp {{ number_format($saldo, 0, ',', '.') }}
+
+                    Rp
+                    {{ number_format(
+                        $saldo,
+                        0,
+                        ',',
+                        '.'
+                    ) }}
+
                 </div>
 
             </td>
@@ -190,14 +451,19 @@
     </table>
 
 
-    {{-- REKAP KATEGORI --}}
+    {{-- ==========================================================
+         REKAP KATEGORI
+    =========================================================== --}}
 
     <div class="section-title">
+
         REKAPITULASI KATEGORI
+
     </div>
 
 
     @if($rekapKategori->count())
+
 
         <table class="data">
 
@@ -205,15 +471,18 @@
 
                 <tr>
 
-                    <th style="width: 50%;">
+                    <th style="width:50%;">
                         Kategori
                     </th>
 
-                    <th style="width: 20%;">
+                    <th style="width:20%;">
                         Tipe
                     </th>
 
-                    <th style="width: 30%;" class="text-right">
+                    <th
+                        style="width:30%;"
+                        class="text-right"
+                    >
                         Jumlah
                     </th>
 
@@ -224,20 +493,27 @@
 
             <tbody>
 
+
                 @foreach($rekapKategori as $item)
 
                     <tr>
 
                         <td>
+
                             {{ $item['kategori'] }}
+
                         </td>
 
+
                         <td>
+
                             {{ $item['type'] === 'income'
                                 ? 'Kas Masuk'
                                 : 'Kas Keluar'
                             }}
+
                         </td>
+
 
                         <td class="text-right">
 
@@ -259,37 +535,55 @@
                 <tr class="total">
 
                     <td colspan="2">
+
                         TOTAL
+
                     </td>
 
+
                     <td class="text-right">
-                        Rp {{ number_format(
+
+                        Rp
+                        {{ number_format(
                             $totalMasuk + $totalKeluar,
                             0,
                             ',',
                             '.'
                         ) }}
+
                     </td>
 
                 </tr>
+
 
             </tbody>
 
         </table>
 
+
     @else
 
+
         <p>
-            Tidak ada transaksi pada periode yang dipilih.
+
+            Tidak ada transaksi pada periode
+            yang dipilih.
+
         </p>
+
 
     @endif
 
 
-    {{-- RINGKASAN AKHIR --}}
+
+    {{-- ==========================================================
+         RINGKASAN AKHIR
+    =========================================================== --}}
 
     <div class="section-title">
+
         RINGKASAN KEUANGAN
+
     </div>
 
 
@@ -297,35 +591,46 @@
 
         <tbody>
 
+
             <tr>
+
                 <td>
                     Total Kas Masuk
                 </td>
 
                 <td class="text-right income">
-                    Rp {{ number_format(
+
+                    Rp
+                    {{ number_format(
                         $totalMasuk,
                         0,
                         ',',
                         '.'
                     ) }}
+
                 </td>
+
             </tr>
 
 
             <tr>
+
                 <td>
                     Total Kas Keluar
                 </td>
 
                 <td class="text-right expense">
-                    Rp {{ number_format(
+
+                    Rp
+                    {{ number_format(
                         $totalKeluar,
                         0,
                         ',',
                         '.'
                     ) }}
+
                 </td>
+
             </tr>
 
 
@@ -336,29 +641,106 @@
                 </td>
 
                 <td class="text-right balance">
-                    Rp {{ number_format(
+
+                    Rp
+                    {{ number_format(
                         $saldo,
                         0,
                         ',',
                         '.'
                     ) }}
+
                 </td>
 
             </tr>
+
 
         </tbody>
 
     </table>
 
 
-    {{-- FOOTER --}}
+
+    {{-- ==========================================================
+         TANDA TANGAN
+    =========================================================== --}}
+
+    <table class="signature">
+
+        <tr>
+
+
+            <td>
+
+                Kepala Program
+
+                <div class="signature-space"></div>
+
+
+                @if($setting->headProgram)
+
+                    <div class="signature-name">
+
+                        {{ $setting->headProgram->name }}
+
+                    </div>
+
+                @else
+
+                    <div>
+                        __________________________
+                    </div>
+
+                @endif
+
+            </td>
+
+
+            <td>
+
+                Bendahara
+
+                <div class="signature-space"></div>
+
+
+                @if($setting->treasurer)
+
+                    <div class="signature-name">
+
+                        {{ $setting->treasurer->name }}
+
+                    </div>
+
+                @else
+
+                    <div>
+                        __________________________
+                    </div>
+
+                @endif
+
+            </td>
+
+
+        </tr>
+
+    </table>
+
+
+
+    {{-- ==========================================================
+         FOOTER
+    =========================================================== --}}
 
     <div class="footer">
 
         Dicetak pada:
+
         {{ now()->format('d/m/Y H:i') }}
 
     </div>
 
+
 </body>
+
 </html>
