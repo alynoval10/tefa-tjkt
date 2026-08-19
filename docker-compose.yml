@@ -1,0 +1,28 @@
+services:
+  tefa:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: tefa-tjkt
+
+    restart: unless-stopped
+
+    ports:
+      - "8080:80"
+
+    env_file:
+      - .env
+
+    volumes:
+      - tefa_storage:/var/www/html/storage
+
+    networks:
+      - tefa-network
+
+volumes:
+  tefa_storage:
+
+networks:
+  tefa-network:
+    driver: bridge
