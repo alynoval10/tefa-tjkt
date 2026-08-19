@@ -8,14 +8,21 @@ trait HasRolePermission
 {
     protected static function hasRoles(array $roles): bool
     {
-        return auth()->check()
-            && auth()->user()->hasAnyRole($roles);
+        if (! auth()->check()) {
+            return false;
+        }
+
+        return in_array(
+            auth()->user()->role,
+            $roles,
+            true
+        );
     }
 
     public static function shouldRegisterNavigation(): bool
-{
-    return true;
-}
+    {
+        return static::hasRoles(static::$viewRoles ?? []);
+    }
 
     public static function canViewAny(): bool
     {

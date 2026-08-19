@@ -21,6 +21,21 @@ class FinancialReport extends Page
 
     protected static ?int $navigationSort = 10;
 
+public static function shouldRegisterNavigation(): bool
+{
+    return auth()->check()
+        && in_array(auth()->user()->role, ['admin', 'bendahara'], true);
+}
+
+public static function canAccess(): bool
+{
+    return auth()->check()
+        && in_array(auth()->user()->role, ['admin', 'bendahara'], true);
+}
+    
+
+
+
     protected string $view = 'filament.pages.financial-report';
 
 
@@ -41,6 +56,8 @@ class FinancialReport extends Page
     |--------------------------------------------------------------------------
     */
 
+    
+    
     public function mount(): void
     {
         $this->tanggalMulai = now()
