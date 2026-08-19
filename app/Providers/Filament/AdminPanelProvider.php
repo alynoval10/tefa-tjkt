@@ -27,7 +27,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('admin')
+            ->path('')
             ->login()
             ->colors([
                 'primary' => Color::Blue,
@@ -43,7 +43,10 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Dashboard::class,
                  Settings::class,
-            ])
+            ])->discoverPages(
+                in: app_path('Filament/Pages'),
+                for: 'App\\Filament\\Pages'
+            )
             ->widgets([
                  AccountWidget::class,
                 \App\Filament\Widgets\KasStats::class,
